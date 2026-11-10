@@ -1,0 +1,54 @@
+# ============================================================
+#  Monitor de passagens — configuração
+#  Edite à vontade. Preços sempre em reais (BRL), ida e volta.
+# ============================================================
+
+[search]
+source = "travelpayouts"   # "travelpayouts" (real) ou "mock" (dados fictícios para testar)
+currency = "brl"
+market = "br"
+months_ahead = 6           # quantos meses à frente varrer (inclui o mês atual)
+min_lead_days = 3          # ignora saídas nos próximos N dias
+trip_min_days = 5          # duração mínima da viagem
+trip_max_days = 15         # duração máxima da viagem
+max_transfers = 1          # 0 = só voos diretos
+keep_per_month = 8         # quantas ofertas mais baratas guardar por origem/destino/mês
+keep_history_days = 120    # quanto histórico manter no banco
+
+[origins]
+primary = ["GRU", "CGH"]
+
+# Aeroportos "distantes": só entram se forem pelo menos X% mais baratos
+# que o melhor preço dos aeroportos primários para o mesmo destino.
+[origins.secondary]
+VCP = 0.15
+
+[destinations]
+anywhere = true            # além da lista abaixo, varre "qualquer destino" saindo de cada origem
+
+# Preço-alvo em R$ (ida e volta). 0 = sem alvo (só entra na análise por histórico).
+# Os valores abaixo são CHUTES. Ajuste para o que você consideraria um bom preço.
+[destinations.watch]
+SSA = 900     # Salvador
+REC = 1000    # Recife
+FOR = 1000    # Fortaleza
+NAT = 1000    # Natal
+MCZ = 1000    # Maceió
+FLN = 700     # Florianópolis
+LIS = 3500    # Lisboa
+SCL = 1500    # Santiago
+EZE = 1200    # Buenos Aires
+MVD = 1300    # Montevidéu
+MIA = 3500    # Miami
+MAD = 3500    # Madri
+
+[alerts]
+history_window_days = 90   # janela do histórico usado como "preço típico"
+min_history_rows = 40      # mínimo de observações para confiar no histórico
+min_history_days = 5       # ...vindas de pelo menos N dias diferentes
+percentile = 0.20          # preço precisa estar entre os 20% mais baratos do histórico
+below_median = 0.85        # ...e pelo menos 15% abaixo da mediana
+cross_section_ratio = 0.75 # sem histórico: pelo menos 25% abaixo da mediana da varredura de hoje
+discovery_max_price = 0    # teto em R$ para destinos fora da lista (0 = desligado)
+max_alerts_per_run = 10
+repeat_after_days = 7      # repete um alerta igual só depois de N dias (ou se cair >5%)
