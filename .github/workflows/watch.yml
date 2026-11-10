@@ -1,0 +1,50 @@
+name: monitor-passagens
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monitor-passagens
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Restaurar histórico
+        uses: actions/cache/restore@v4
+        with:
+          path: data/prices.db
+          key: prices-db-${{ github.run_id }}
+          restore-keys: prices-db-
+
+      - name: Coletar, analisar e avisar
+        env:
+          TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m watcher.main run
+
+      - name: Salvar histórico
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/prices.db
+          key: prices-db-${{ github.run_id }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: painel
+          path: site/
